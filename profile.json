@@ -1,0 +1,1 @@
+{"name": "saksham", "skills": ["python", "backhand developer"], "projects": [{"name": "profile analyzer", "description": "analyze the prfile of a engineer", "tech_used": ["python", "json", "libraries", "dictniories"], "deployed": true}], "headline": "analyze it", "leetcode": 84, "cgpa": 8.0, "github_repos": 6}

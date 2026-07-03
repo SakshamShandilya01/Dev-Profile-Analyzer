@@ -1,0 +1,42 @@
+====================================
+  PROFILE ANALYSIS REPORT
+====================================
+
+Name: saksham
+CGPA: 8.0
+Leetcode: 84
+Github repos: 6
+Projects: 1
+
+SCORE: 39/100
+VERDICT: CRITICAL - dont apply yet, build more stuff
+
+ISSUES FOUND:
+1. You wrote these skills but no project uses them: backhand developer, remove them or make a project with them
+2. 84 leetcode is okay but not enough, try to reach 100
+3. only 1 project, try to make 2 more so recruiter sees more range
+
+FIXES:
+1. For skill backhand developer : build a small project with it or remove from resume
+2. Build one more project, maybe a cli tool or a small tracker app
+
+NEW HEADLINE SUGGESTION:
+Old: analyze it
+New: 2nd Year CSE student | python , backhand developer | Building profile analyzer | Open to internships
+
+30 DAY PLAN:
+Week 1:
+  - remove backhand developer from resume or build something with it
+
+Week 2:
+  - deploy your best project if not deployed already
+  - update your linkedin headline
+
+Week 3:
+  - learn one new skill that companies actually use
+  - push code to github everyday
+
+Week 4:
+  - connect with 10 people on linkedin
+  - apply to 5 internships on internshala
+
