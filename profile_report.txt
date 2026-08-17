@@ -40,3 +40,4 @@ Week 4:
   - connect with 10 people on linkedin
   - apply to 5 internships on internshala
 
+Report generated using the Developer Profile Analyzer CLI.
