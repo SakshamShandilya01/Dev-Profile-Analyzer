@@ -8,6 +8,9 @@ A Python CLI tool that takes in a developer's profile details (skills, projects,
 - Suggests fixes and a 30-day improvement plan
 - Saves report to `profile_report.txt`
 
+## Tech Stack
+Built with Python, using file I/O and JSON for data persistence.
+
 ## Screenshots
 
 ### Input Example
