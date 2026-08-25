@@ -1,11 +1,61 @@
 # Developer Profile Analyzer
-# this is my first python project, still learning file handling and stuff
-# sorry if code is messy
+# my first python project - v2, fixed the bugs I found (input crashes, empty
+# skill entries counting as "proven", file not closing properly on error)
 
 import json
 
+
+# ---------- safe input helpers ----------
+# these just keep asking until the user gives something valid,
+# instead of crashing the whole program on one bad keystroke
+
+def safe_int_input(prompt, min_value=0):
+    while True:
+        raw = input(prompt)
+        try:
+            value = int(raw)
+            if value < min_value:
+                print("please enter a number >=", min_value)
+                continue
+            return value
+        except ValueError:
+            print("that's not a valid whole number, try again")
+
+
+def safe_float_input(prompt, min_value=0.0, max_value=10.0):
+    while True:
+        raw = input(prompt)
+        try:
+            value = float(raw)
+            if value < min_value or value > max_value:
+                print("please enter a number between", min_value, "and", max_value)
+                continue
+            return value
+        except ValueError:
+            print("that's not a valid number, try again")
+
+
+def split_and_clean(raw_text):
+    # splits on comma, strips whitespace, and drops empty entries
+    # (this fixes the bug where "Python, C++, " left a '' in the list,
+    # and '' matches inside every string so it looked "proven")
+    parts = raw_text.split(",")
+    cleaned = []
+    for p in parts:
+        p = p.strip()
+        if p != "":
+            cleaned.append(p)
+    return cleaned
+
+
+def yes_no(prompt):
+    ch = input(prompt).strip().lower()
+    return ch in ("yes", "y")
+
+
+# ---------- core logic (same as before, untouched) ----------
+
 def find_unproven_skills(skills, projects):
-    # this checks which skills are not used in any project
     unproven = []
     for skill in skills:
         used = False
@@ -34,19 +84,16 @@ def calculate_score(skills, projects, leetcode, cgpa, github_repos):
     unproven = find_unproven_skills(skills, projects)
     proven_count = len(skills) - len(unproven)
 
-    # skill points, 10 each, max 30
     skill_points = proven_count * 10
     if skill_points > 30:
         skill_points = 30
     score = score + skill_points
 
-    # project points, 12 each, max 36
     project_points = len(projects) * 12
     if project_points > 36:
         project_points = 36
     score = score + project_points
 
-    # bonus for deployed ones
     deployed_count = 0
     for p in projects:
         if p['deployed'] == True:
@@ -56,7 +103,6 @@ def calculate_score(skills, projects, leetcode, cgpa, github_repos):
         deploy_points = 9
     score = score + deploy_points
 
-    # leetcode points
     if leetcode >= 200:
         score = score + 15
     elif leetcode >= 100:
@@ -66,7 +112,6 @@ def calculate_score(skills, projects, leetcode, cgpa, github_repos):
     elif leetcode >= 20:
         score = score + 3
 
-    # cgpa points
     if cgpa >= 8.5:
         score = score + 5
     elif cgpa >= 7.5:
@@ -74,7 +119,6 @@ def calculate_score(skills, projects, leetcode, cgpa, github_repos):
     elif cgpa >= 6.5:
         score = score + 1
 
-    # github points
     if github_repos >= 5:
         score = score + 5
     elif github_repos >= 3:
@@ -264,53 +308,54 @@ def print_report(name, skills, projects, headline, leetcode, cgpa, github_repos)
 
     print(report)
 
-    # saving to a text file, still figuring out file handling properly
+    # using "with" now instead of manual open/close - this guarantees the
+    # file gets closed even if something errors out mid-write
     try:
-        f = open("profile_report.txt", "w")
-        f.write(report)
-        f.close()
+        with open("profile_report.txt", "w", encoding="utf-8") as f:
+            f.write(report)
         print("report saved in profile_report.txt")
-    except:
-        print("something went wrong while saving the file")
+    except OSError as e:
+        print("something went wrong while saving the file:", e)
 
 
 def save_profile(data):
-    # using json here, saw this in a youtube tutorial
     try:
-        f = open("profile.json", "w")
-        json.dump(data, f)
-        f.close()
+        with open("profile.json", "w", encoding="utf-8") as f:
+            json.dump(data, f)
         print("profile saved")
-    except:
-        print("could not save profile file")
+    except OSError as e:
+        print("could not save profile file:", e)
 
 
 def load_profile():
     try:
-        f = open("profile.json", "r")
-        data = json.load(f)
-        f.close()
+        with open("profile.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+        # basic check that this file actually has what we need
+        # (fixes crash if profile.json is old/corrupted/missing keys)
+        required_keys = ['name', 'skills', 'projects', 'headline', 'leetcode', 'cgpa', 'github_repos']
+        for key in required_keys:
+            if key not in data:
+                print("saved profile is missing '" + key + "', ignoring it")
+                return None
         return data
-    except:
+    except FileNotFoundError:
+        return None
+    except json.JSONDecodeError:
+        print("profile.json is corrupted, ignoring it")
         return None
 
 
 def collect_projects():
     projects = []
-    n = int(input("how many projects do you have: "))
+    n = safe_int_input("how many projects do you have: ")
     for i in range(n):
         print("Project", i + 1)
-        name = input("project name: ")
-        desc = input("what does it do (one line): ")
+        name = input("project name: ").strip()
+        desc = input("what does it do (one line): ").strip()
         tech = input("tech used, comma separated: ")
-        tech_list = tech.split(",")
-        for j in range(len(tech_list)):
-            tech_list[j] = tech_list[j].strip()
-        dep = input("is it deployed? yes/no: ")
-        if dep == "yes" or dep == "y":
-            deployed = True
-        else:
-            deployed = False
+        tech_list = split_and_clean(tech)
+        deployed = yes_no("is it deployed? yes/no: ")
 
         p = {}
         p['name'] = name
@@ -322,18 +367,16 @@ def collect_projects():
 
 
 def collect_profile():
-    name = input("your name: ")
+    name = input("your name: ").strip()
     skills_input = input("your skills, comma separated: ")
-    skills = skills_input.split(",")
-    for i in range(len(skills)):
-        skills[i] = skills[i].strip()
+    skills = split_and_clean(skills_input)
 
     projects = collect_projects()
 
-    headline = input("your linkedin headline: ")
-    leetcode = int(input("leetcode problems solved: "))
-    cgpa = float(input("your cgpa: "))
-    github_repos = int(input("number of github repos: "))
+    headline = input("your linkedin headline: ").strip()
+    leetcode = safe_int_input("leetcode problems solved: ")
+    cgpa = safe_float_input("your cgpa: ", min_value=0.0, max_value=10.0)
+    github_repos = safe_int_input("number of github repos: ")
 
     data = {}
     data['name'] = name
@@ -356,8 +399,7 @@ def main():
 
     if saved != None:
         print("found a saved profile for", saved['name'])
-        ch = input("use saved profile? yes/no: ")
-        if ch == "yes" or ch == "y":
+        if yes_no("use saved profile? yes/no: "):
             data = saved
         else:
             data = collect_profile()
@@ -379,4 +421,5 @@ def main():
     print_report(name, skills, projects, headline, leetcode, cgpa, github_repos)
 
 
-main()
+if __name__ == "__main__":
+    main()
